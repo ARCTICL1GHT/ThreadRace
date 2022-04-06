@@ -21,6 +21,7 @@ public class frmMain extends javax.swing.JFrame {
     Proceso hilo1;
     Proceso hilo2;
     Proceso hilo3;
+    
     // Región Crítica
     int[] regionCritica = new int[3];
     int posicion = 0;
@@ -30,16 +31,28 @@ public class frmMain extends javax.swing.JFrame {
     /**
      * Creates new form frmMain
      */
+    
     public frmMain() {
         initComponents();
         this.hilo1 = new Proceso(lblNumeroHilo1);
         this.hilo2 = new Proceso(lblNumeroHilo2);
         this.hilo3 = new Proceso(lblNumeroHilo3);
-        regionCritica[0] = 0;
-        regionCritica[1] = 0;
-        regionCritica[2] = 0;
     }
-    
+
+                        public synchronized void Monitor(int numero, JLabel mon){
+                           mon.setText(String.valueOf(numero));
+                            // Región crítica
+                            regionCritica[posicion] = numero;
+                            String contenidoRC = "[" + String.valueOf(regionCritica[0]) + "]";
+                            contenidoRC += "[" + String.valueOf(regionCritica[1]) + "]";
+                            contenidoRC += "[" + String.valueOf(regionCritica[2]) + "]";
+                            lblRegionCritica.setText(contenidoRC);
+                            
+                            posicion++;
+                            // Operaciones post región crítica
+                            System.out.println("Proceso finalizado con status: 0");
+                }
+            
     public class Proceso extends Thread {
         int numeroAGenerar;
         JLabel miEtiqueta;
@@ -51,27 +64,12 @@ public class frmMain extends javax.swing.JFrame {
         }
         
         @Override
-        public void run() {
-            // Operaciones pre región crítica
-            this.numeroAGenerar = (int)(Math.random()* 9 + 1);
-            this.miEtiqueta.setText(String.valueOf(numeroAGenerar));
-            // Región crítica
-            try {
-                mutex.acquire();
-            } catch (InterruptedException ex) {
-                Logger.getLogger(frmMain.class.getName()).log(Level.SEVERE, null, ex);
-            }
-            regionCritica[posicion] = this.numeroAGenerar;
-            String contenidoRC = "[" + String.valueOf(regionCritica[0]) + "]";
-            contenidoRC += "[" + String.valueOf(regionCritica[1]) + "]";
-            contenidoRC += "[" + String.valueOf(regionCritica[2]) + "]";
-            lblRegionCritica.setText(contenidoRC);
-            posicion++;
-            mutex.release(); // Libera región crítica
-            // Operaciones post región crítica
-            System.out.println("Proceso finalizado con status: 0");
+            public void run() {
+                                 // Operaciones pre región crítica
+                this.numeroAGenerar=(int)(Math.random()*9+1);
+                Monitor(numeroAGenerar, miEtiqueta);
+            }   
         }
-    }
 
     /**
      * This method is called from within the constructor to initialize the form.
